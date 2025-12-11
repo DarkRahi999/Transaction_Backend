@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber, IsEnum, IsOptional, IsString } from 'class-validator';
-import { TransactionType, TransactionCategory } from 'src/utils/enums';
+import { TransactionType, TransactionCategory } from '../../utils/enums';
 
 export class CreateTransactionDto {
   @IsNotEmpty()
