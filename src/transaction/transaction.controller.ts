@@ -44,6 +44,16 @@ export class TransactionController {
     return this.transactionService.getDailySummary(date);
   }
 
+  @Get('monthly-summary')
+  getMonthlySummary(@Query('year') year: number, @Query('month') month: number) {
+    return this.transactionService.getMonthlySummary(year, month);
+  }
+
+  @Get('yearly-summary')
+  getYearlySummary(@Query('year') year: number) {
+    return this.transactionService.getYearlySummary(year);
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<TransactionRes> {
     return await this.transactionService.findOne(id);

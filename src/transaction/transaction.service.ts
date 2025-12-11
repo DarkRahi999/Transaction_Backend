@@ -157,6 +157,75 @@ export class TransactionService {
     };
   }
 
+  async getMonthlySummary(year: number, month: number): Promise<any> {
+    // Create start date (first day of the month)
+    const startDate = new Date(year, month - 1, 1); // month is 0-indexed in JS Date
+    
+    // Create end date (first day of next month)
+    const endDate = new Date(year, month, 1);
+    
+    const transactions = await this.transactionRepository.find({
+      transactionDate: {
+        $gte: startDate,
+        $lt: endDate,
+      },
+    });
+    
+    const totalIncome = transactions
+      .filter(t => t.type === TransactionType.INCOME.toString())
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const totalExpense = transactions
+      .filter(t => t.type === TransactionType.EXPENSE.toString())
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    // Get month name for display
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    return {
+      month: monthNames[month - 1],
+      year,
+      totalIncome,
+      totalExpense,
+      netBalance: totalIncome - totalExpense,
+      transactionCount: transactions.length,
+    };
+  }
+
+  async getYearlySummary(year: number): Promise<any> {
+    // Create start date (January 1st of the year)
+    const startDate = new Date(year, 0, 1);
+    
+    // Create end date (January 1st of next year)
+    const endDate = new Date(year + 1, 0, 1);
+    
+    const transactions = await this.transactionRepository.find({
+      transactionDate: {
+        $gte: startDate,
+        $lt: endDate,
+      },
+    });
+    
+    const totalIncome = transactions
+      .filter(t => t.type === TransactionType.INCOME.toString())
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const totalExpense = transactions
+      .filter(t => t.type === TransactionType.EXPENSE.toString())
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    return {
+      year,
+      totalIncome,
+      totalExpense,
+      netBalance: totalIncome - totalExpense,
+      transactionCount: transactions.length,
+    };
+  }
+
   private async calculateBalance(): Promise<number> {
     const latestTransaction = await this.transactionRepository.find(
       {},
