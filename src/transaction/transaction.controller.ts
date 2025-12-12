@@ -34,6 +34,22 @@ export class TransactionController {
     );
   }
 
+  @Get('paginated')
+  async findPaginated(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10
+  ): Promise<{ data: TransactionRes[]; currentPage: number; totalPages: number; totalRecords: number }> {
+    const result = await this.transactionService.findPaginated(page, limit);
+    return {
+      data: result.data.map(transaction => 
+        plainToInstance(TransactionRes, transaction, { excludeExtraneousValues: true })
+      ),
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalRecords: result.totalRecords
+    };
+  }
+
   @Get('summary')
   getSummary() {
     return this.transactionService.getSummary();

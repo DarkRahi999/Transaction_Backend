@@ -43,6 +43,7 @@ export class TransactionService {
   async findAll(): Promise<TransactionRes[]> {
     const transactions = await this.transactionRepository.findAll({
       orderBy: { transactionDate: 'DESC' },
+      limit: 50
     });
     
     // Convert to response DTOs
@@ -256,5 +257,41 @@ export class TransactionService {
     
     // Persist all changes
     await this.entityManager.flush();
+  }
+
+  async findPaginated(page: number = 1, limit: number = 10): Promise<{ 
+    data: Transaction[]; 
+    currentPage: number; 
+    totalPages: number; 
+    totalRecords: number 
+  }> {
+    // Ensure limit is between 1 and 100
+    limit = Math.min(Math.max(limit, 1), 100);
+    
+    // Calculate offset
+    const offset = (page - 1) * limit;
+    
+    // Get total count
+    const totalRecords = await this.transactionRepository.count({});
+    
+    // Get paginated data
+    const data = await this.transactionRepository.find(
+      {},
+      {
+        orderBy: { transactionDate: 'DESC' },
+        limit,
+        offset,
+      },
+    );
+    
+    // Calculate total pages
+    const totalPages = Math.ceil(totalRecords / limit);
+    
+    return {
+      data,
+      currentPage: page,
+      totalPages,
+      totalRecords,
+    };
   }
 }
