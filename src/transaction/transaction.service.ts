@@ -6,8 +6,8 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionRes } from './dto/response-transaction.dto';
 import { TransactionType } from '../utils/enums';
-import { wrap } from '@mikro-orm/core';
 import { plainToInstance } from 'class-transformer';
+import { SummaryResponseDto } from './dto/summary-response.dto';
 
 @Injectable()
 export class TransactionService {
@@ -165,6 +165,66 @@ export class TransactionService {
       currentPage: page,
       totalPages,
       totalRecords,
+    };
+  }
+
+  async getMonthlySummary(): Promise<SummaryResponseDto> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    const monthlyTransactions = await this.transactionRepository.find({
+      transactionDate: { $gte: startOfMonth, $lte: endOfMonth },
+    });
+    
+    let monthlyIncome = 0;
+    let monthlyExpense = 0;
+    
+    for (const transaction of monthlyTransactions) {
+      if (transaction.type === TransactionType.INCOME) {
+        monthlyIncome += transaction.amount;
+      } else if (transaction.type === TransactionType.EXPENSE) {
+        monthlyExpense += transaction.amount;
+      }
+    }
+    
+    // Get current balance from the last transaction
+    const currentBalance = await this.calculateBalance();
+    
+    return {
+      monthlyIncome,
+      monthlyExpense,
+      currentBalance,
+    };
+  }
+
+  async getYearlySummary(): Promise<SummaryResponseDto> {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const endOfYear = new Date(now.getFullYear(), 11, 31);
+    
+    const yearlyTransactions = await this.transactionRepository.find({
+      transactionDate: { $gte: startOfYear, $lte: endOfYear },
+    });
+    
+    let yearlyIncome = 0;
+    let yearlyExpense = 0;
+    
+    for (const transaction of yearlyTransactions) {
+      if (transaction.type === TransactionType.INCOME) {
+        yearlyIncome += transaction.amount;
+      } else if (transaction.type === TransactionType.EXPENSE) {
+        yearlyExpense += transaction.amount;
+      }
+    }
+    
+    // Get current balance from the last transaction
+    const currentBalance = await this.calculateBalance();
+    
+    return {
+      yearlyIncome,
+      yearlyExpense,
+      currentBalance,
     };
   }
 }

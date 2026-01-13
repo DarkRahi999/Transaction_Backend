@@ -5,17 +5,14 @@ import { AppService } from "./app.service";
 export class AppController {
   constructor(private readonly appService: AppService) { }
 
-  @Get()
-  getMonthlySummaryReport(@Query('year') year: number, @Query('month') month: number): Promise<any> {
-    return this.appService.getMonthlySummaryReport(year, month);
+  @Get('monthly-summary')
+  async getMonthlySummary() {
+    return await this.appService.getMonthlySummary();
   }
 
-  @Get('current-month-summary')
-  getCurrentMonthSummary() {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
-    return this.appService.getMonthlySummaryReport(currentYear, currentMonth);
+  @Get('yearly-summary')
+  async getYearlySummary() {
+    return await this.appService.getYearlySummary();
   }
 
 }
